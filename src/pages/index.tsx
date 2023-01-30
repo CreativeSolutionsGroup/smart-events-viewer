@@ -3,24 +3,22 @@ import useSWR from "swr";
 import { signIn, useSession } from "next-auth/react"
 import { ICheckIn } from "@/models/checkins";
 
-let header = new Headers({ "Authorization": `Bearer placeholder-will-be-set` })
-let fetcher = (url: string) => fetch(url, { headers: header }).then((res) => res.json());
+const fetcher = (params: [string, string]) =>
+  fetch(params[0], { headers: { 'Authorization': 'Bearer ' + params[1]} } )
+  .then((res) => res.json());
 
 export default function Home() {
 
   const { data: session, status } = useSession()
 
-  useEffect(() => {
-    header = new Headers({ "Authorization": `Bearer ${session?.id_token}` })
-    fetcher = (url: string) => fetch(url, { headers: header }).then((res) => res.json());
-  }, [session]);
-
   const key = process.env["VITE_BACKEND"] + '/checkin'
   const { data: checkinData, error: SWRError } = useSWR(
-    key,
+    [key, session?.id_token ?? "no-token-yet"],
     fetcher,
-    { refreshInterval: 5000}
-  );
+    { refreshInterval: 5000 }
+  )
+  if(checkinData) console.log(checkinData)
+  if(SWRError) console.log(SWRError)
 
   useEffect(() => { 
     checkins_under_limit()
@@ -40,11 +38,7 @@ export default function Home() {
 
   if (status === "authenticated") {
       return (
-        <div>
-          <div>
-            <div>checkins in {limit} hours: {checkins ?? 0}</div>
-          </div>
-        </div>
+        <div>checkins in {limit} hours: {checkins ?? 0}</div>
       );
   }
 
