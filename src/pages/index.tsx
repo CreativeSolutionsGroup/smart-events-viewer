@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
-import { signIn, useSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { ICheckIn } from "@/models/checkins";
+import Link from "next/link";
+
 
 const fetcher = (params: [string, string]) =>
   fetch(params[0], { headers: { 'Authorization': 'Bearer ' + params[1]} } )
@@ -43,6 +45,6 @@ export default function Home() {
   }
 
 
-  return <a href="/api/auth/signin">Sign in</a>
+  return <Link href="/api/auth/signin">Sign in</Link>
 
 }
