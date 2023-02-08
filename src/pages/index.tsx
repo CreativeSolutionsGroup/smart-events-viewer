@@ -33,7 +33,7 @@ export default function Home() {
   const checkins_under_limit = () => {
     if(checkinData){
       let all_check_ins: Array<ICheckIn> = checkinData as Array<ICheckIn>;
-      const number_of_checkins = Array.isArray(all_check_ins) ? all_check_ins.filter((checkin) => (Date.now() - new Date(checkin.created).getTime()) < lim): [];
+      const number_of_checkins = Array.isArray(all_check_ins) ? all_check_ins.filter((checkin) => (Date.now() - new Date(checkin.createdAt).getTime()) < lim): [];
       setCheckins(number_of_checkins.length);
     }
   }
