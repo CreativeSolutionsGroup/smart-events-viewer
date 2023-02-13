@@ -3,6 +3,7 @@ import useSWR from "swr";
 import { useSession } from "next-auth/react"
 import { ICheckIn } from "@/models/checkins";
 import Link from "next/link";
+import { Button, Typography, Card, CardContent, Grid } from '@mui/material';
 
 
 const fetcher = (params: [string, string]) =>
@@ -40,11 +41,35 @@ export default function Home() {
 
   if (status === "authenticated") {
       return (
-        <div>checkins in {limit} hours: {checkins ?? 0}</div>
+        <Grid
+          item
+          container
+          direction="row"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Grid item xs={3}>
+      
+            <Card sx={{ minWidth: 275 }}>
+              <CardContent>
+                <Typography component="h1" variant="h5" sx={{mb: 2}}>
+                  checkins in {limit} hours: {checkins ?? 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+        
       );
   }
 
 
-  return <Link href="/api/auth/signin">Sign in</Link>
+  return (
+    <Link href="/api/auth/signin" passHref>
+      <Button>
+        Sign in Here
+      </Button>
+    </Link>
+  )
 
 }
