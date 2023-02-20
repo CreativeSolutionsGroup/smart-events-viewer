@@ -39,8 +39,6 @@ export default function Home() {
   const limit = 24;
   const limitInMs = limit * 60 * 60 * 1000;
 
-
-
   if (status === "authenticated") {
     return (
       <Grid
@@ -51,7 +49,7 @@ export default function Home() {
         alignItems="center"
         justifyContent="center"
       >
-        <Grid item xs={3}>
+        <Grid item>
 
           <Card sx={{ minWidth: 275 }}>
             <CardContent sx={{ textAlign: "center" }}>
