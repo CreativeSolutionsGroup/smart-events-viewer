@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
-import { useSession } from "next-auth/react"
+import { signIn, signOut, useSession } from "next-auth/react"
 import { ICheckIn } from "@/models/checkins";
 import Link from "next/link";
 import { Button, Typography, Card, CardContent, Grid } from '@mui/material';
@@ -14,7 +14,7 @@ const fetcher = (params: [string, string]) =>
     .then((res) => res.json());
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  let { data: session, status } = useSession()
   const { data: checkinData, error: SWRError } = useSWR(
     [`${process.env.VITE_BACKEND}/checkin`, session?.id_token ?? "no-token-yet"],
     fetcher,
@@ -40,6 +40,12 @@ export default function Home() {
   const limitInMs = limit * 60 * 60 * 1000;
 
   if (status === "authenticated") {
+    fetch(`${process.env.VITE_BACKEND}/me`, { headers: { "Authorization": `Bearer ${session?.id_token ?? "no-token-yet"}` } }).then((res) => {
+      if (res.status === 403) {
+        signIn();
+      }
+    });
+
     return (
       <Grid
         height="100vh"
@@ -65,7 +71,6 @@ export default function Home() {
       </Grid>
     );
   }
-
 
   return (
     <Link href="/api/auth/signin" passHref>
