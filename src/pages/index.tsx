@@ -1,74 +1,78 @@
 import React, { useEffect, useState } from "react";
-import useSWR from "swr";
-import { signIn, signOut, useSession } from "next-auth/react"
-import { ICheckIn } from "@/models/checkins";
+import { signIn, useSession } from "next-auth/react"
+import { IEvent } from "@/models/event";
 import Link from "next/link";
-import { Button, Typography, Card, CardContent, Grid } from '@mui/material';
+import { Button, Typography, Card, CardContent, Grid, FormControl, InputLabel, Select, Box, OutlinedInput, MenuItem, SelectChangeEvent } from '@mui/material';
+import RecentCheckins from "@/components/RecentCheckins";
+import EventCheckins from "@/components/EventCheckins";
 
-/**
- * @param params [url, bearerToken]
- * @returns a fetcher function for use with SWR.
- */
-const fetcher = (params: [string, string]) =>
-  fetch(params[0], { headers: { 'Authorization': 'Bearer ' + params[1] } })
-    .then((res) => res.json());
 
 export default function Home() {
   let { data: session, status } = useSession()
-  const { data: checkinData, error: SWRError } = useSWR(
-    [`${process.env.VITE_BACKEND}/checkin`, session?.id_token ?? "no-token-yet"],
-    fetcher,
-    { refreshInterval: 5000 }
-  )
-  if (checkinData) console.log(checkinData)
-  if (SWRError) console.log(SWRError)
 
-  const checkinsUnderLimit = () => {
-    if (checkinData) {
-      let all_check_ins: Array<ICheckIn> = checkinData as Array<ICheckIn>;
-      const number_of_checkins = Array.isArray(all_check_ins) ? all_check_ins.filter((checkin) => (Date.now() - new Date(checkin.createdAt).getTime()) < limitInMs) : [];
-      setCheckins(number_of_checkins.length);
-    }
+  const [optionId, setOptionId] = useState('Recent View')
+  const [optionName, setOptionName] = useState('')
+  const [events, setEvents] = useState<IEvent[]>()
+
+  const handleChange = (event: SelectChangeEvent) => {
+    const selectedId = event.target.value;
+    const selectedName = events?.find((e) => e.id === selectedId)?.alias;
+    setOptionId(selectedId);
+    setOptionName(selectedName ?? "");
   }
 
-  useEffect(() => {
-    checkinsUnderLimit()
-  }, [checkinData])
 
-  const [checkins, setCheckins] = useState<number>();
-  const limit = 24;
-  const limitInMs = limit * 60 * 60 * 1000;
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetch(`${process.env.VITE_BACKEND}/me`, { headers: { "Authorization": `Bearer ${session?.id_token ?? "no-token-yet"}` } })
+        .then((res) => {
+          if (res.status === 403) {
+            signIn();
+          }
+          else {
+            fetch(`${process.env.VITE_BACKEND}/events`, { headers: { "Authorization": `Bearer ${session?.id_token ?? "no-token-yet"}` } })
+              .then(res => res.json())
+              .then(data => setEvents(data));
+          }
+        })
+    }
+  }, [status, session]);
+
 
   if (status === "authenticated") {
-    fetch(`${process.env.VITE_BACKEND}/me`, { headers: { "Authorization": `Bearer ${session?.id_token ?? "no-token-yet"}` } }).then((res) => {
-      if (res.status === 403) {
-        signIn();
-      }
-    });
-
     return (
-      <Grid
-        height="100vh"
-        item
-        container
-        direction="row"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Grid item>
+      <>
+        <Grid
+          height="100vh"
+          item
+          container
+          direction="column"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Grid item>
+            <FormControl sx={{ m: 1, width: 300 }}>
+              <InputLabel id="select">Option</InputLabel>
+              <Select
+                labelId="select"
+                id="select"
+                value={optionId}
+                label="Option"
+                onChange={handleChange} 
+              >
 
-          <Card sx={{ minWidth: 275 }}>
-            <CardContent sx={{ textAlign: "center" }}>
-              <Typography variant="h3">
-                {checkins ?? 0}
-              </Typography>
-              <Typography sx={{ mt: 2 }}>
-                Checkins in {limit} hours
-              </Typography>
-            </CardContent>
-          </Card>
+                <MenuItem value="Recent View">Recent View</MenuItem>
+                {events?.map((e, i) => (
+                  <MenuItem value={e.id}>{e.alias}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            {optionId === "Recent View" ? <RecentCheckins /> : <EventCheckins id={optionId} name={optionName} />}
+          </Grid>
         </Grid>
-      </Grid>
+      </>
     );
   }
 
