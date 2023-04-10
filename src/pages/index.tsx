@@ -63,7 +63,7 @@ export default function Home() {
 
                 <MenuItem value="Recent View">Recent View</MenuItem>
                 {events?.map((e, i) => (
-                  <MenuItem value={e.id}>{e.alias}</MenuItem>
+                  <MenuItem value={e.id} key={i}>{e.alias}</MenuItem>
                 ))}
               </Select>
             </FormControl>
