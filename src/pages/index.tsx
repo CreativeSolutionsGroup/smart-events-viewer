@@ -58,7 +58,7 @@ export default function Home() {
                 id="select"
                 value={optionId}
                 label="Option"
-                onChange={handleChange} 
+                onChange={handleChange}
               >
 
                 <MenuItem value="Recent View">Recent View</MenuItem>
@@ -75,13 +75,7 @@ export default function Home() {
       </>
     );
   }
-
-  return (
-    <Link href="/api/auth/signin" passHref>
-      <Button>
-        Sign in Here
-      </Button>
-    </Link>
-  );
-
+  if(status === "unauthenticated"){
+    signIn();
+  }
 }
